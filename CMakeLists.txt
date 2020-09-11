@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 
 ### use a compiler supporting constexpr math
+<<<<<<< HEAD
 # set(CMAKE_C_COMPILER "/usr/local/lib/gcc-9.1.0/bin/gcc" CACHE STRING "gcc compiler" FORCE)
 # set(CMAKE_CXX_COMPILER "/usr/local/lib/gcc-9.1.0/bin/g++" CACHE STRING "g++ compiler" FORCE)
 enable_language(CXX)
@@ -15,6 +16,10 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 endif()
 
 
+=======
+# set(CMAKE_C_COMPILER "/opt/local/bin/gcc-mp-9" CACHE STRING "gcc compiler" FORCE)
+# set(CMAKE_CXX_COMPILER "/opt/local/bin/gcc-mp-9" CACHE STRING "g++ compiler" FORCE)
+>>>>>>> 8d33535cc8457bfe4107f5b1ff2ba51107fd4358
 
 ### Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE)
@@ -82,16 +87,19 @@ endif()
 
 message("Building in ${CMAKE_BUILD_TYPE} mode")
 
-set(CMAKE_CXX_FLAGS "--std=c++2a /usr/lib64/libstdc++.so.6.0.27")
-set(CMAKE_CXX_FLAGS "--std=c++2a")
+# set(CMAKE_CXX_FLAGS "--std=c++2a /opt/local/lib/libstdc++.6.dylib")
+# set(CMAKE_CXX_FLAGS "--std=c++2a")
 
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb -g -march=native -pthread")
-set(CMAKE_CXX_FLAGS_RELEASE "-g -Ofast -fstrict-aliasing -march=native -pthread -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -ggdb -Ofast -fstrict-aliasing -march=native -pthread")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -std=c++17 -ggdb -g -march=native -pthread")
+set(CMAKE_CXX_FLAGS_RELEASE "-g -std=c++17 -Ofast -fstrict-aliasing -march=native -pthread -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -std=c++17 -ggdb -Ofast -fstrict-aliasing -march=native -pthread")
 
 
-add_executable(SlpEncBuild SlpEncBuild.cpp Common.cpp ${FOLCA_SOURCE_DIR}/fbtree.cpp ${FOLCA_SOURCE_DIR}/onlinebp.c)
+add_executable(SlpEncBuild SlpEncBuild.cpp ${FOLCA_SOURCE_DIR}/fbtree.cpp ${FOLCA_SOURCE_DIR}/onlinebp.c)
 TARGET_LINK_LIBRARIES(SlpEncBuild sdsl)
 
-add_executable(SubstrBenchmark SubstrBenchmark.cpp Common.cpp ${FOLCA_SOURCE_DIR}/fbtree.cpp ${FOLCA_SOURCE_DIR}/onlinebp.c)
+add_executable(SubstrBenchmark SubstrBenchmark.cpp ${FOLCA_SOURCE_DIR}/fbtree.cpp ${FOLCA_SOURCE_DIR}/onlinebp.c)
 TARGET_LINK_LIBRARIES(SubstrBenchmark sdsl)
+
+add_executable(LceBenchmark LceBenchmark.cpp ${FOLCA_SOURCE_DIR}/fbtree.cpp ${FOLCA_SOURCE_DIR}/onlinebp.c)
+TARGET_LINK_LIBRARIES(LceBenchmark sdsl)
