@@ -1,8 +1,20 @@
 cmake_minimum_required(VERSION 2.6)
 
 ### use a compiler supporting constexpr math
-set(CMAKE_C_COMPILER "/usr/local/lib/gcc-9.1.0/bin/gcc" CACHE STRING "gcc compiler" FORCE)
-set(CMAKE_CXX_COMPILER "/usr/local/lib/gcc-9.1.0/bin/g++" CACHE STRING "g++ compiler" FORCE)
+# set(CMAKE_C_COMPILER "/usr/local/lib/gcc-9.1.0/bin/gcc" CACHE STRING "gcc compiler" FORCE)
+# set(CMAKE_CXX_COMPILER "/usr/local/lib/gcc-9.1.0/bin/g++" CACHE STRING "g++ compiler" FORCE)
+enable_language(CXX)
+
+# set(CMAKE_C_COMPILER "gcc" CACHE STRING "gcc compiler" FORCE)
+
+# set(CMAKE_CXX_COMPILER "g++" CACHE STRING "g++ compiler" FORCE)
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "9.1.0")
+    message(FATAL_ERROR "Insufficient gcc version")
+  endif()
+endif()
+
+
 
 ### Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE)
@@ -22,12 +34,44 @@ include_directories(${SUX_SOURCE_DIR}/support)
 ### check for SDSL
 find_library(SDSL_LIB sdsl)
 if (NOT SDSL_LIB)
-  message("sdsl-lite not found, building from submodule (hopefully you did git clone --recursive)")
-  add_subdirectory(external/sdsl-lite)
-  include_directories(${CMAKE_BINARY_DIR}/external/sdsl-lite/include/)
-  include_directories(${CMAKE_BINARY_DIR}/external/sdsl-lite/external/libdivsufsort/include)
-  LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/external/sdsl-lite/lib)
-  LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/external/sdsl-lite/external/libdivsufsort/lib)
+  message("sdsl-lite not found, building as external content")
+  set(CMAKE_INSTALL_INCLUDEDIR "include") # This is an hack because include(GUIInstallDirs) doesn't work
+  include(FetchContent)
+  ## Add sdsl
+  FetchContent_Declare(
+    sdsl
+    GIT_REPOSITORY https://github.com/simongog/sdsl-lite
+  )
+
+  FetchContent_GetProperties(sdsl)
+  if(NOT sdsl_POPULATED)
+    FetchContent_Populate(sdsl)
+
+    set(GENERATE_DOC OFF CACHE BOOL "Do not generate doxygen for sdsl-lite")
+    
+    add_subdirectory(${sdsl_SOURCE_DIR} ${sdsl_BINARY_DIR} EXCLUDE_FROM_ALL)
+  endif()
+
+  ## Add divsuffsort
+  FetchContent_Declare(
+    divsufsort
+    GIT_REPOSITORY https://github.com/simongog/libdivsufsort.git
+    GIT_TAG        2.0.1
+  )
+
+  FetchContent_GetProperties(divsufsort)
+  if(NOT divsufsort_POPULATED)
+    FetchContent_Populate(divsufsort)
+
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "Do not build a shared library for libdivsufsort")
+    set(BUILD_EXAMPLES OFF CACHE BOOL "Do not build libdivsufsort example")
+    set(BUILD_DIVSUFSORT64 ON CACHE BOOL "Build libdivsufsort in 64-bits mode")
+
+    add_subdirectory(${divsufsort_SOURCE_DIR} ${divsufsort_BINARY_DIR} EXCLUDE_FROM_ALL)
+
+    target_include_directories(divsufsort PUBLIC "${divsufsort_BINARY_DIR}/include")
+    target_include_directories(divsufsort64 PUBLIC "${divsufsort_BINARY_DIR}/include")
+  endif()
 else()
   find_library(DSS divsufsort)
   find_library(DSS64 divsufsort64)
