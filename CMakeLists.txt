@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
 ### use a compiler supporting constexpr math
-<<<<<<< HEAD
 # set(CMAKE_C_COMPILER "/usr/local/lib/gcc-9.1.0/bin/gcc" CACHE STRING "gcc compiler" FORCE)
 # set(CMAKE_CXX_COMPILER "/usr/local/lib/gcc-9.1.0/bin/g++" CACHE STRING "g++ compiler" FORCE)
 enable_language(CXX)
@@ -16,10 +15,6 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 endif()
 
 
-=======
-# set(CMAKE_C_COMPILER "/opt/local/bin/gcc-mp-9" CACHE STRING "gcc compiler" FORCE)
-# set(CMAKE_CXX_COMPILER "/opt/local/bin/gcc-mp-9" CACHE STRING "g++ compiler" FORCE)
->>>>>>> 8d33535cc8457bfe4107f5b1ff2ba51107fd4358
 
 ### Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE)
