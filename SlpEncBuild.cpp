@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
   cmdline::parser parser;
   parser.add<string>("input", 'i', "input file name. <input>.C and <input>.R in Navarro's RePair format", true);
   parser.add<string>("output", 'o', "output file to which data structure is written", true);
-  parser.add<string>("format", 'f', "format of input: NavarroRepair. Bigrepair.", true);
+  parser.add<string>("format", 'f', "format of input: NavarroRepair | Bigrepair | rrepair", true);
   parser.add<string>("encoding", 'e', "encoding: " + methodList, true);
   parser.parse_check(argc, argv);
   const string in = parser.get<string>("input");
@@ -177,7 +177,9 @@ int main(int argc, char* argv[])
   if (format.compare("NavarroRepair") == 0) {
     slp.load_NavarroRepair(in.data());
   } else if (format.compare("Bigrepair") == 0) {
-    slp.load_Bigrepair(in.data());
+    slp.load_Bigrepair(in.data(),false);
+  } else if (format.compare("rrepair") == 0) {
+    slp.load_Bigrepair(in.data(),true);
   } else {
     cerr << "error: specify a valid format name: NavarroRepair. Bigrepair" << endl;
     exit(1);

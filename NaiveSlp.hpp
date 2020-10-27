@@ -118,7 +118,8 @@ public:
 
   void load_Bigrepair
   (
-   const char * fname_base
+   const char * fname_base,
+   bool use_rrepair
    ) {
     char fname[1024];
     FILE *Rf, *Cf;
@@ -141,7 +142,11 @@ public:
       fprintf(stderr, "Error: cannot read file %s\n", fname);
       exit(1);
     }
-    alphSize = 256; // [0,256) are terminals
+    if(use_rrepair) {
+      ++alphSize; //! rrepair handles alphSize differently
+    } else {
+      alphSize = 256; // [0,256) are terminals
+    }
     alph_.resize(alphSize);
     for (uint64_t i = 0; i < alph_.size(); ++i) {
       alph_[i] = i;
