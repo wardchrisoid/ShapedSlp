@@ -9,7 +9,7 @@ enable_language(CXX)
 
 # set(CMAKE_CXX_COMPILER "g++" CACHE STRING "g++ compiler" FORCE)
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "7.4.0")
+  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "7.3.0")
     message(FATAL_ERROR "Insufficient gcc version ${CMAKE_CXX_COMPILER_VERSION} (Minimum required 7.4.0)")
   endif()
 endif()
