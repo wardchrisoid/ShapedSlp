@@ -247,6 +247,53 @@ uint64_t lceToR
   return l;
 }
 
+template<class SlpT>
+uint64_t lceToRBounded
+(
+ const SlpT & slp,
+ const uint64_t p1,
+ const uint64_t p2,
+ const uint64_t upperbound
+) {
+  std::stack<typename SlpT::nodeT> path1, path2;
+
+  getPrefixPath(slp, path1, p1);
+  getPrefixPath(slp, path2, p2);
+
+  uint64_t l = 0;
+  while (true) {
+    auto n1 = path1.top();
+    auto n2 = path2.top();
+    while (std::get<0>(n1) != std::get<0>(n2)) {
+      if (std::get<0>(n1) > std::get<0>(n2)) {
+        descentPrefixPath(slp, path1, std::get<0>(n2));
+        n1 = path1.top();
+        // std::cout << "descent n1: " << std::get<0>(n1) << ", " << std::get<1>(n1) << ", " << std::get<2>(n1) << std::endl;
+      } else {
+        descentPrefixPath(slp, path2, std::get<0>(n1));
+        n2 = path2.top();
+        // std::cout << "descent n2: " << std::get<0>(n2) << ", " << std::get<1>(n2) << ", " << std::get<2>(n2) << std::endl;
+      }
+    }
+    if (std::get<1>(n1) == std::get<1>(n2)) { // match
+      l += std::get<0>(n1);
+      if(l >= upperbound) { return l; }
+      if (!(proceedPrefixPath(slp, path1))) {
+        break;
+      }
+      if (!(proceedPrefixPath(slp, path2))) {
+        break;
+      }
+    } else if (std::get<0>(n1) > 1) { // mismatch with non-terminal
+      descentPrefixPath(slp, path1, std::get<0>(n1) - 1);
+      descentPrefixPath(slp, path2, std::get<0>(n1) - 1);
+    } else { // lce ends with mismatch char
+      break;
+    }
+  }
+  return l;
+}
+
 
 template<class SlpT>
 uint64_t lceToR_Naive
