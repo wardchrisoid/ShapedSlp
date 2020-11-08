@@ -334,6 +334,47 @@ uint64_t lceToR_Naive
   return l;
 }
 
+template<class SlpT>
+uint64_t lceToR_NaiveBounded
+(
+ const SlpT & slp,
+ const uint64_t p1,
+ const uint64_t p2,
+ const uint64_t upperbound
+) {
+  std::stack<typename SlpT::nodeT> path1, path2;
+
+  getPrefixPath(slp, path1, p1);
+  getPrefixPath(slp, path2, p2);
+
+  uint64_t l = 0;
+  while (true) {
+    auto n1 = path1.top();
+    auto n2 = path2.top();
+    if (std::get<0>(n1) != 1) {
+      descentPrefixPath(slp, path1, 1);
+      n1 = path1.top();
+    }
+    if (std::get<0>(n2) != 1) {
+      descentPrefixPath(slp, path2, 1);
+      n2 = path2.top();
+    }
+    if (std::get<1>(n1) == std::get<1>(n2)) { // match char
+      ++l;
+      if(l >= upperbound) { return l; }
+      if (!(proceedPrefixPath(slp, path1))) {
+        break;
+      }
+      if (!(proceedPrefixPath(slp, path2))) {
+        break;
+      }
+    } else { // lce ends with mismatch char
+      break;
+    }
+  }
+  return l;
+}
+
 
 // template<class SlpT>
 // uint64_t lceToR
