@@ -55,6 +55,38 @@ public:
    ) : seq_(other.seq_), rules_(other.rules_), alph_(other.alph_) {
   }
 
+  void load_solca(const char* fname_base) {
+    constexpr size_t alphSize = 256; // [0,256) are terminals
+    alph_.resize(alphSize);
+    for (uint64_t i = 0; i < alph_.size(); ++i) {
+      alph_[i] = i;
+    }
+
+	std::ifstream ifs(fname_base);
+    if(!ifs) {
+      fprintf(stderr, "Error: cannot stat file %s\n", fname_base);
+      exit(1);
+    }
+	ifs.seekg(0, std::ios::end);
+	uint64_t eofpos = ifs.tellg();
+	ifs.clear();
+	ifs.seekg(0, std::ios::beg);
+	uint64_t begpos = ifs.tellg();
+	uint64_t num_rules = (eofpos - begpos) / (sizeof(uint32_t) * 2);
+	rules_.resize(num_rules);
+	// left_.resize(num_rules);
+	// right_.resize(num_rules);
+	for (uint64_t i = 0; i < num_rules; ++i)
+	{
+      uint32_t left, right;
+	  ifs.read((char *)&left, sizeof(left));
+	  ifs.read((char *)&right, sizeof(right));
+          rules_[i].left = left;
+          rules_[i].right = right;
+	}
+    seq_.resize(1);
+    seq_[0] = rules_.size() + alphSize -1;
+  }
 
   void load_NavarroRepair
   (
