@@ -1,12 +1,92 @@
 #ifndef INCLUDE_GUARD_Common
 #define INCLUDE_GUARD_Common
 
+
+#include "/scripts/code/dcheck.hpp"
+
+#include <tuple>
 #include <stdint.h> // include uint64_t etc.
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <queue>
 #include <stack>
+
+template<class T>
+class PersistentInitialStack {
+  public:
+  typedef T value_type;
+  typedef typename std::stack<T>::size_type size_type;
+
+
+  private:
+  std::vector<T> m_persistent_stack;
+  size_type m_persistent_size = 0; // simulates m_persistent_stack.size()
+  std::vector<T> m_mod_stack;
+  bool m_initializing = true; // switch the states at the first pop()
+  size_t m_persistent_depth = 0;
+
+  public:
+
+  // PersistentInitialStack& operator=(PersistentInitialStack&& o) {
+  //   this->m_persistent_stack = std::move(o.m_persistent_stack);
+  //   this->m_mod_stack = std::move(o.m_mod_stack);
+  //   this->m_initializing = o.m_initializing;
+  //   this->m_persistent_depth = o.m_persistent_depth;
+  //   this->m_persistent_size = o.m_persistent_size;
+  //   std::cout << "ok";
+  //   return *this;
+  // }
+  bool empty() const {
+    return size() == 0;
+  }
+
+  void reset() {
+    m_initializing = false;
+    m_mod_stack.clear();
+    m_persistent_size = m_persistent_stack.size();
+  }
+  size_type size() const {
+    if(m_initializing) {
+      return m_persistent_stack.size();
+    }
+    return m_persistent_size + m_mod_stack.size();
+  }
+
+  value_type& top() {
+    if(!m_mod_stack.empty()) {
+      return m_mod_stack.back();
+    }
+
+    DCHECK_LE(m_persistent_size, m_persistent_stack.size());
+    return m_persistent_stack[m_persistent_size-1];
+  }
+  const value_type& top() const {
+    return m_persistent_stack.back();
+  }
+  void pop() {
+    if(m_initializing) {
+      m_initializing = false;
+      DCHECK_EQ(m_persistent_size, m_persistent_stack.size());
+      DCHECK(m_mod_stack.empty());
+    }
+    if(m_mod_stack.empty()) {
+      DCHECK_GT(m_persistent_size, 0);
+      --m_persistent_size;
+      return;
+    } 
+    m_mod_stack.pop_back();
+  }
+  void push(const T& value ) {
+    if(m_initializing) {
+      m_persistent_stack.push_back(value);
+      ++m_persistent_size;
+      DCHECK_EQ(m_persistent_size, m_persistent_stack.size());
+      return;
+    } 
+    m_mod_stack.push_back(value);
+  }
+};
 
 template<typename var_t>
 struct PairT
@@ -135,11 +215,11 @@ void printDerivationTree
 
 
 
-template<class SlpT>
+template<class SlpT, class stackT = std::stack<typename SlpT::nodeT> >
 void getPrefixPath
 (
  const SlpT & slp,
- std::stack<typename SlpT::nodeT> & path,
+ stackT & path,
  uint64_t pos
 ) {
   if (pos >= slp.getLen()) {
@@ -159,11 +239,11 @@ void getPrefixPath
  * modify the stack 'path' to point the highest node that is adjacent to the node path.top()
  * return false when such a node does not exist
  */
-template<class SlpT>
+template<class SlpT, class stackT = PersistentInitialStack<typename SlpT::nodeT> >
 bool proceedPrefixPath
 (
  const SlpT & slp,
- std::stack<typename SlpT::nodeT> & path
+ stackT & path
  ) {
   if (path.size() <= 1) {
     return false;
@@ -186,11 +266,11 @@ bool proceedPrefixPath
 }
 
 
-template<class SlpT>
+template<class SlpT, class stackT = std::stack<typename SlpT::nodeT> >
 void descentPrefixPath
 (
  const SlpT & slp,
- std::stack<typename SlpT::nodeT> & path,
+ stackT & path,
  const uint64_t len
  ) {
   auto n = (path.size() == 1) ? slp.getChildNode_Root(0) : slp.getChildNode(path.top(), 0);
@@ -247,17 +327,22 @@ uint64_t lceToR
   return l;
 }
 
-template<class SlpT>
+
+
+template<class SlpT, class stackT = PersistentInitialStack<typename SlpT::nodeT> >
 uint64_t lceToRBounded
 (
  const SlpT & slp,
  const uint64_t p1,
  const uint64_t p2,
- const uint64_t upperbound
+ const uint64_t upperbound,
+ stackT& path1
 ) {
-  std::stack<typename SlpT::nodeT> path1, path2;
+  stackT path2;
 
-  getPrefixPath(slp, path1, p1);
+  if(path1.empty()) {
+    getPrefixPath(slp, path1, p1);
+  }
   getPrefixPath(slp, path2, p2);
 
   uint64_t l = 0;
